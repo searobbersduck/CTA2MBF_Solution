@@ -1,0 +1,53 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cta2mbf 2d gan model",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "env": {
+                // "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": [
+                "--gpu_ids", "1,3,4", 
+                "--dataroot", 
+                "../../data/tmp",
+                "--input_nc", "1",
+                "--output_nc", "1",
+                "--model", "pix2pix",
+                "--netG", "resnet_9blocks", 
+                "--lambda_L1", "2", 
+                "--n_epochs", "100000",
+                "--batch_size", "4"
+            ]
+        }, 
+        {
+            "name": "cta2mbf predict",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            // "env": {
+            //     "CUDA_VISIBLE_DEVICES": "2"
+            // },
+            "args": [
+                "--dataroot", 
+                "../../data/tmp",
+                "--input_nc", "1",
+                "--output_nc", "1",
+                "--gpu_ids", "2",
+                "--model", "pix2pix", 
+                "--batch_size", "4",
+                "--netG", "resnet_9blocks", 
+                "--results_dir", "../../data/task2/result"
+            ]
+        }
+    ]
+}
