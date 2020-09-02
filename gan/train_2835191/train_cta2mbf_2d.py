@@ -28,9 +28,9 @@ import numpy as np
 def train():
     opt = TrainOptions().parse()
 
-    root_dirs = ['../../data/task0/2.slice_2d/train_3911806']
-    config_xxx_files = ['../../data/task0/2.slice_2d/config/config_2d_cta2mbf_train_3911806.txt']
-    config_yyy_files = ['../../data/task0/2.slice_2d/config/config_2d_cta2mbf_train_3911806.txt']
+    root_dirs = ['../../data/task0/2.slice_2d/train_2835191']
+    config_xxx_files = ['../../data/task0/2.slice_2d/config/config_2d_cta2mbf_train_2835191.txt']
+    config_yyy_files = ['../../data/task0/2.slice_2d/config/config_2d_cta2mbf_train_2835191.txt']
     crop_size = [512, 512]
     ds = CTA2MBF_DS(root_dirs, config_xxx_files, config_yyy_files, 'train', crop_size, crop_size)
     data_loader = DataLoader(ds, batch_size=4, shuffle=True, num_workers=16, pin_memory=True)
@@ -145,8 +145,8 @@ def predict_onecase(infile_A, infile_B, outdir, model=None):
         data = {}
         data['A'] = srcs
         data['B'] = dsts
-        data['A_paths'] = ['{}_{}_A'.format(4759812, i)]
-        data['B_paths'] = ['{}_{}_B'.format(4759812, i)]
+        data['A_paths'] = ['{}_{}_A'.format(2835191, i)]
+        data['B_paths'] = ['{}_{}_B'.format(2835191, i)]
         model.set_input(data)
         model.test()
         fake_B = model.fake_B.detach().cpu().numpy().squeeze()
@@ -164,9 +164,9 @@ def predict_onecase(infile_A, infile_B, outdir, model=None):
     out_img_B = sitk.GetImageFromArray(out_arr_B)
     in_img_B.CopyInformation(in_img_A)
     out_img_B.CopyInformation(in_img_A)
-    sitk.WriteImage(out_img_B, os.path.join(outdir, '4759812_all_fake_B.nii.gz'))
-    sitk.WriteImage(in_img_A, os.path.join(outdir, '4759812_all_real_A.nii.gz'))
-    sitk.WriteImage(in_img_B, os.path.join(outdir, '4759812_all_real_B.nii.gz'))
+    sitk.WriteImage(out_img_B, os.path.join(outdir, '3911806_use_2835191_fake_B.nii.gz'))
+    sitk.WriteImage(in_img_A, os.path.join(outdir, '3911806_use_2835191_real_A.nii.gz'))
+    sitk.WriteImage(in_img_B, os.path.join(outdir, '3911806_use_2835191_real_B.nii.gz'))
 
 def predict_singletask(indir_2d, indir, outdir):
     '''
@@ -192,4 +192,4 @@ if __name__ == '__main__':
     # predict_onecase('../../data/task2/1.1.raw/1.2.156.112605.14038007945377.191013010825.3.5228.61295_1.2.156.112605.14038007945377.191013011003.3.5228.104694/m_ptrRawImage.nii.gz', '../../data/task2/1.1.raw/1.2.156.112605.14038007945377.191013010825.3.5228.61295_1.2.156.112605.14038007945377.191013011003.3.5228.104694/diff.nii.gz', '../../data/tmp/1.nii.gz')
     # predict_singletask('../../data/task2/2.slice_2d/val', '../../data/task2/1.1.raw', '../../data/task2/result2')
     # predict_singletask('../../data/task_suhai2/2.slice_2d/val', '../../data/task_suhai2/1.1.raw', '../../data/task_suhai2/result2')
-    predict_onecase('/home/proxima-sx12/data/after_registration/CTA_MBF_usefulnii/4759812_cta_136.nii.gz', '/home/proxima-sx12/data/after_registration/CTA_MBF_usefulnii/4759812_mbf_136.nii.gz', '/home/proxima-sx12/data/gnerated_results/')
+    predict_onecase('/home/proxima-sx12/data/after_registration/CTA_MBF_usefulnii/3911806_cta_141.nii.gz', '/home/proxima-sx12/data/after_registration/CTA_MBF_usefulnii/3911806_mbf_141.nii.gz', '/home/proxima-sx12/data/gnerated_results/')

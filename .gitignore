@@ -9,6 +9,10 @@ __pycache__/
 # solution
 data/*
 checkpoints
+*.out
+
+results
+gan/train/results
 
 # Distribution / packaging
 .Python
