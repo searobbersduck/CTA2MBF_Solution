@@ -10,6 +10,10 @@ __pycache__/
 data/*
 checkpoints
 *.out
+*.nii.gz
+*.nii
+*.mhd
+*.mha
 
 results
 gan/train/results

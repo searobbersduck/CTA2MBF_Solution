@@ -15,6 +15,8 @@ def initial_registration(fixed_image, moving_image, initial_transform):
     registration_method.SetSmoothingSigmasPerLevel(smoothingSigmas = [2,1,0])
     registration_method.SmoothingSigmasAreSpecifiedInPhysicalUnitsOn()
 
+#下面三行注释掉的，如果在jupyter里，可以返回训练过程metric的变化曲线
+
     # registration_method.AddCommand(sitk.sitkStartEvent, rc.metric_start_plot)
     # registration_method.AddCommand(sitk.sitkEndEvent, rc.metric_end_plot)
     # registration_method.AddCommand(sitk.sitkIterationEvent, 
@@ -57,7 +59,7 @@ def bspline_registration(fixed_image, moving_image, fixed_image_mask=None, fixed
                                                          transformDomainMeshSize = mesh_size, order=3)    
     registration_method.SetInitialTransform(initial_transform)
         
-#     registration_method.SetMetricAsMeanSquares()
+    #registration_method.SetMetricAsMeanSquares()
     registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=50)
     # Settings for metric sampling, usage of a mask is optional. When given a mask the sample points will be 
     # generated inside that region. Also, this implicitly speeds things up as the mask is smaller than the
@@ -155,13 +157,14 @@ def bspline_registration_morepoint(fixed_image, moving_image, fixed_image_mask=N
     print('Optimizer\'s stopping condition, {0}'.format(registration_method.GetOptimizerStopConditionDescription()))
     return (ffd_transform,metric_value)   
 
+#三步配准并保存配准结果
 def registration_three_phase(nii_path, save_folder):
     patient_folders = os.listdir(nii_path)
     patient_folders.sort()
-    patient_folders.reverse()
-    # del(patient_folders[0])
-    # del(patient_folders[0])
-    patient_folders = ['5049830','4230975','3911806']
+    # patient_folders.reverse()
+
+    #如果想单独配准哪几个病人可以改改下面这个list
+    # patient_folders = ['5049830','4230975','3911806']
     print(patient_folders)
     for patient_folder in patient_folders:
         print(patient_folder)
@@ -182,6 +185,7 @@ def registration_three_phase(nii_path, save_folder):
         print('ok_ready')
 
 
+        #第一步（种）配准：直接调用ffd配准模型
         direct_ffd_transform,ffd_metric = bspline_registration(fixed_image = fixed_image, 
                                             moving_image = moving_image,
                                             fixed_image_mask = None,
@@ -198,7 +202,7 @@ def registration_three_phase(nii_path, save_folder):
         sitk.WriteImage(mbf_ffd, dst_mbf)
 
         print('ok')
-
+        #第二步（种）配准：ffd with a multi-resolution control point grid 模型配准
         ffd_transform_morepoint,ffd_morepoint_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
         #                                       moving_image = mip_affine,
                                             moving_image = moving_image,
@@ -216,7 +220,7 @@ def registration_three_phase(nii_path, save_folder):
         sitk.WriteImage(mbf_ffd_morepoint, dst_mbf2)
 
         print('ok')
-
+        #第三步（种）配准模型：第一步的配准结果作为第二步模型的初始值，执行配准
         ffd_ffd_transform_morepoint,ffd_ffd_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
                                             moving_image = mip_ffd,
                                             fixed_image_mask = None,
@@ -238,133 +242,4 @@ if __name__ =='__main__':
     nii_path = '/home/proxima-sx12/dataset/cta_mip_rasample'
     save_folder = '/home/proxima-sx12/regis_results'
     registration_three_phase(nii_path, save_folder)
-
-
-    # patient_folders = os.listdir(nii_path)
-    # for patient_folder in patient_folders:
-    #     patient_folder_path = os.path.join(nii_path,patient_folder)
-    #     nii_files = os.listdir(patient_folder_path)
-    #     for nii_file in nii_files:
-    #         if 'CTA' in nii_file:
-    #             cta_path = os.path.join(patient_folder_path,nii_file)
-    #         if 'MBF' in nii_file:
-    #             mbf_path = os.path.join(patient_folder_path,nii_file)
-    #         if 'MIP' in nii_file:
-    #             mip_path = os.path.join(patient_folder_path,nii_file) 
-    #     save_path = os.path.join(save_folder,patient_folder)  
-    #     os.makedirs(save_path, exist_ok=True) 
-    #     fixed_image =  sitk.ReadImage(cta_path, sitk.sitkFloat32)
-    #     moving_image = sitk.ReadImage(mip_path, sitk.sitkFloat32) 
-    #     mbf_image = sitk.ReadImage(mbf_path, sitk.sitkFloat32) 
-    #     print('ok_ready')
-
-
-    #     direct_ffd_transform,ffd_metric = bspline_registration(fixed_image = fixed_image, 
-    #                                         moving_image = moving_image,
-    #                                         fixed_image_mask = None,
-    #                                         fixed_points = None, 
-    #                                         moving_points = None
-    #                                         )
-
-    #     mip_ffd = perform_transform(direct_ffd_transform, fixed_image,moving_image)
-    #     mbf_ffd = perform_transform(direct_ffd_transform, fixed_image,mbf_image)
-
-    #     dst_mip = os.path.join(save_path,patient_folder + '_MIP_regis_direct_ffd_'+str(ffd_metric)+'.nii.gz')
-    #     dst_mbf = os.path.join(save_path,patient_folder + '_MBF_regis_direct_ffd_'+str(ffd_metric)+'.nii.gz')
-    #     sitk.WriteImage(mip_ffd, dst_mip)
-    #     sitk.WriteImage(mbf_ffd, dst_mbf)
-
-    #     print('ok')
-
-    #     ffd_transform_morepoint,ffd_morepoint_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
-    #     #                                       moving_image = mip_affine,
-    #                                         moving_image = moving_image,
-    #                                         fixed_image_mask = None,
-    #                                         fixed_points = None, 
-    #                                         moving_points = None
-    #                                         )
-
-    #     mip_ffd_morepoint = perform_transform(ffd_transform_morepoint,fixed_image,moving_image)
-    #     mbf_ffd_morepoint = perform_transform(ffd_transform_morepoint,fixed_image,mbf_image)
-
-    #     dst_mip2=  os.path.join(save_path,patient_folder +'_MIP_regis_direct_ffd_morepoint_'+str(ffd_morepoint_etric)+'.nii.gz')
-    #     dst_mbf2=  os.path.join(save_path,patient_folder + '_MBF_regis_direct_ffd_morepoint_'+str(ffd_morepoint_metric)+'.nii.gz')
-    #     sitk.WriteImage(mip_ffd_morepoint, dst_mip2)
-    #     sitk.WriteImage(mbf_ffd_morepoint, dst_mbf2)
-
-    #     print('ok')
-
-    #     ffd_ffd_transform_morepoint,ffd_ffd_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
-    #                                         moving_image = mip_ffd,
-    #                                         fixed_image_mask = None,
-    #                                         fixed_points = None, 
-    #                                         moving_points = None
-    #                                         )
-    #     mip_ffd_ffd = perform_transform(ffd_ffd_transform_morepoint,fixed_image,mip_ffd)
-    #     mbf_ffd_ffd = perform_transform(ffd_ffd_transform_morepoint,fixed_image,mbf_ffd)
-
-    #     dst_mip3=  os.path.join(save_path,patient_folder +'_MIP_regis_ffd_ffd_morepoint_'+str(ffd_ffd_metric)+'.nii.gz')
-    #     dst_mbf3=  os.path.join(save_path,patient_folder + '_MBF_regis_ffd_ffd_morepoint_'+str(ffd_ffd_metric)+'.nii.gz')
-    #     sitk.WriteImage(mip_ffd_ffd, dst_mip3)
-    #     sitk.WriteImage(mbf_ffd_ffd, dst_mbf3)
-
-    #     print('ok')
-
-
-
-# cta_path = '/home/proxima-sx12/dataset/cta_mip_rasample/2503702/resampled_CTA_512_512_381.nii.gz'
-# mip_path = '/home/proxima-sx12/dataset/cta_mip_rasample/2503702/resampled_MIP_547_547_284.nii.gz'
-# mbf_path = '/home/proxima-sx12/dataset/cta_mip_rasample/2503702/resampled_MBF_547_547_284.nii.gz'
-
-# save_path = '/home/proxima-sx12/regis_results/2503702'
-# os.makedirs(save_path, exist_ok=True) 
-
-# fixed_image =  sitk.ReadImage(cta_path, sitk.sitkFloat32)
-# moving_image = sitk.ReadImage(mip_path, sitk.sitkFloat32) 
-# mbf_image = sitk.ReadImage(mbf_path, sitk.sitkFloat32) 
-
-
-# direct_ffd_transform,ffd_metric = bspline_registration(fixed_image = fixed_image, 
-#                                        moving_image = moving_image,
-#                                       fixed_image_mask = None,
-#                                       fixed_points = None, 
-#                                       moving_points = None
-#                                      )
-
-# mip_ffd = perform_transform(direct_ffd_transform, fixed_image,moving_image)
-# mbf_ffd = perform_transform(direct_ffd_transform, fixed_image,mbf_image)
-
-# dst_mip = os.path.join(save_path, '2503702_MIP_regis_direct_ffd_'+str(ffd_metric)+'nii.gz')
-# dst_mbf = os.path.join(save_path, '2503702_MBF_regis_direct_ffd_'+str(ffd_metric)+'nii.gz')
-# sitk.WriteImage(mip_ffd, dst_mip)
-# sitk.WriteImage(mbf_ffd, dst_mbf)
-
-# ffd_transform_morepoint,ffd_morepoint_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
-# #                                       moving_image = mip_affine,
-#                                        moving_image = moving_image,
-#                                       fixed_image_mask = None,
-#                                       fixed_points = None, 
-#                                       moving_points = None
-#                                      )
-
-# mip_ffd_morepoint = perform_transform(ffd_transform_morepoint,fixed_image,moving_image)
-# mbf_ffd_morepoint = perform_transform(ffd_transform_morepoint,fixed_image,mbf_image)
-
-# dst_mip2= os.path.join(save_path, '2503702_MIP_regis_direct_ffd_morepoint_'+str(ffd_morepoint_etric)+'nii.gz')
-# dst_mbf2= os.path.join(save_path, '2503702_MBF_regis_direct_ffd_morepoint_'+str(ffd_morepoint_metric)+'nii.gz')
-# sitk.WriteImage(mip_ffd_morepoint, dst_mip2)
-# sitk.WriteImage(mbf_ffd_morepoint, dst_mbf2)
-
-# ffd_ffd_transform_morepoint,ffd_ffd_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
-#                                       moving_image = mip_ffd,
-#                                       fixed_image_mask = None,
-#                                       fixed_points = None, 
-#                                       moving_points = None
-#                                      )
-# mip_ffd_ffd = perform_transform(ffd_ffd_transform_morepoint,fixed_image,mip_ffd)
-# mbf_ffd_ffd = perform_transform(ffd_ffd_transform_morepoint,fixed_image,mbf_ffd)
-
-# dst_mip3= os.path.join(save_path, '2503702_MIP_regis_ffd_ffd_morepoint_'+str(ffd_ffd_metric)+'nii.gz')
-# dst_mbf3= os.path.join(save_path, '2503702_MBF_regis_ffd_ffd_morepoint_'+str(ffd_ffd_metric)+'nii.gz')
-# sitk.WriteImage(mip_ffd_ffd, dst_mip3)
-# sitk.WriteImage(mbf_ffd_ffd, dst_mbf3)
+    #接下来从save_folder中选择配准metrics高的去切片训练
