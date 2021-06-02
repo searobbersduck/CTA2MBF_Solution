@@ -7,7 +7,7 @@ import pandas as pd
 
 import pydicom
 
-ROOT = os.path.join(os.path.dirname(__file__), os.path.pardir)
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 sys.path.append(ROOT)
 
 from external_lib.MedCommon.utils.dicom_tag_utils import DicomTagUtils
@@ -729,7 +729,7 @@ def cardiac_segmentation_new_algo(
         out_dir = None
     ):
     import torch
-    from external_lib.MedCommon.experiments.seg.cardiac.chamber.inference import load_inference_opts
+    from external_lib.MedCommon.experiments.seg.cardiac.chamber.inference.inference import load_inference_opts
     from external_lib.MedCommon.segmentation.runner.train_seg import SegmentationTrainer
     opts = load_inference_opts()
     model = SegmentationTrainer.load_model(opts)
@@ -1315,15 +1315,15 @@ def preprocess_data_140():
     # out_root = os.path.join(root, '0.ori_3')
     # sort_by_series_uid_multiprocessing(in_root, out_root, 24)    
 
-    # step 3
-    in_root = os.path.join(root, '0.ori_3')
-    out_root = os.path.join(root, '3.sorted_dcm')
-    preprocess_data_114_extract_modalitys(in_root, out_root)
+    # # step 3
+    # in_root = os.path.join(root, '0.ori_3')
+    # out_root = os.path.join(root, '3.sorted_dcm')
+    # preprocess_data_114_extract_modalitys(in_root, out_root)
 
-    # step 3
-    in_root = os.path.join(root, '3.sorted_dcm')
-    out_root = os.path.join(root, '3.sorted_nii')
-    step_3_4_convert_dicom_series_to_nii(in_root, out_root)
+    # # step 3
+    # in_root = os.path.join(root, '3.sorted_dcm')
+    # out_root = os.path.join(root, '3.sorted_nii')
+    # step_3_4_convert_dicom_series_to_nii(in_root, out_root)
     
     # step 4 generate registration cmd 
     '''
@@ -1331,10 +1331,10 @@ def preprocess_data_140():
     '''
 
     # step 5 chamber segmentation
-    # data_root = os.path.join(root, '3.sorted_dcm')
-    # out_dir = os.path.join(root, '3.sorted_mask')
-    # cardiac_segmentation_new_algo(data_root, out_dir)
-    # step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
+    data_root = os.path.join(root, '3.sorted_dcm')
+    out_dir = os.path.join(root, '3.sorted_mask')
+    cardiac_segmentation_new_algo(data_root, out_dir)
+    step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
 
 
 
