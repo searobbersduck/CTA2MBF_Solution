@@ -48,7 +48,7 @@
                 "--netG", "resnet_9blocks", 
                 "--results_dir", "../../data/task2/result"
             ]
-        }
+        },
         {
             "name": "cta2mbf cardiac segmentation",
             "type": "python",
@@ -57,7 +57,7 @@
             "console": "integratedTerminal",
             "cwd": "${fileDirname}",
             "env": {
-                "CUDA_VISIBLE_DEVICES": "4"
+                "CUDA_VISIBLE_DEVICES": "0"
             },
             "args": [
                 "--config", "../resources/train_config_dice.yaml"

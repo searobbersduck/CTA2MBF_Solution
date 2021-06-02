@@ -7,3 +7,6 @@
 [submodule "seg/external_lib/MedicalZooPytorch"]
 	path = seg/external_lib/MedicalZooPytorch
 	url = https://github.com/black0017/MedicalZooPytorch.git
+[submodule "external_lib/MedCommon"]
+	path = external_lib/MedCommon
+	url = https://github.com/searobbersduck/MedCommon.git

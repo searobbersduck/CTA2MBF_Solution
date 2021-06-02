@@ -56,7 +56,13 @@ def bspline_registration(fixed_image, moving_image, fixed_image_mask=None, fixed
                  for image_size,grid_spacing in zip(image_physical_size,grid_physical_spacing)]
 
     initial_transform = sitk.BSplineTransformInitializer(image1 = fixed_image, 
-                                                         transformDomainMeshSize = mesh_size, order=3)    
+                                                         transformDomainMeshSize = mesh_size, order=3)  
+
+
+    # initial_transform = sitk.CenteredTransformInitializer(fixed_image, moving_image,
+    #                                                   sitk.Euler3DTransform(),
+    #                                                   sitk.CenteredTransformInitializerFilter.GEOMETRY)
+
     registration_method.SetInitialTransform(initial_transform)
         
     #registration_method.SetMetricAsMeanSquares()
@@ -236,6 +242,80 @@ def registration_three_phase(nii_path, save_folder):
         sitk.WriteImage(mbf_ffd_ffd, dst_mbf3)
 
         print('ok')
+
+
+def registration_three_phase_impl(fixed_image, moving_image, mbf_image):
+    
+    fixed_image =  sitk.Cast(fixed_image, sitk.sitkFloat32)
+    moving_image = sitk.Cast(moving_image, sitk.sitkFloat32) 
+    mbf_image = sitk.Cast(mbf_image, sitk.sitkFloat32)
+    
+    print('rigid registration step 1...')
+    #第一步（种）配准：直接调用ffd配准模型
+    direct_ffd_transform,ffd_metric = bspline_registration(fixed_image = fixed_image, 
+                                        moving_image = moving_image,
+                                        fixed_image_mask = None,
+                                        fixed_points = None, 
+                                        moving_points = None
+                                        )
+
+    mip_ffd = perform_transform(direct_ffd_transform, fixed_image,moving_image)
+    mbf_ffd = perform_transform(direct_ffd_transform, fixed_image,mbf_image)
+
+    # dst_mip = os.path.join(save_path,patient_folder + '_MIP_regis_direct_ffd_'+str(ffd_metric)+'.nii.gz')
+    # dst_mbf = os.path.join(save_path,patient_folder + '_MBF_regis_direct_ffd_'+str(ffd_metric)+'.nii.gz')
+    # sitk.WriteImage(mip_ffd, dst_mip)
+    # sitk.WriteImage(mbf_ffd, dst_mbf)
+
+    # print('rigid registration step 2...')
+    # #第二步（种）配准：ffd with a multi-resolution control point grid 模型配准
+    # ffd_transform_morepoint,ffd_morepoint_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
+    # #                                       moving_image = mip_affine,
+    #                                     moving_image = moving_image,
+    #                                     fixed_image_mask = None,
+    #                                     fixed_points = None, 
+    #                                     moving_points = None
+    #                                     )
+
+    # mip_ffd_morepoint = perform_transform(ffd_transform_morepoint,fixed_image,moving_image)
+    # mbf_ffd_morepoint = perform_transform(ffd_transform_morepoint,fixed_image,mbf_image)
+
+    # # dst_mip2=  os.path.join(save_path,patient_folder +'_MIP_regis_direct_ffd_morepoint_'+str(ffd_morepoint_metric)+'.nii.gz')
+    # # dst_mbf2=  os.path.join(save_path,patient_folder + '_MBF_regis_direct_ffd_morepoint_'+str(ffd_morepoint_metric)+'.nii.gz')
+    # # sitk.WriteImage(mip_ffd_morepoint, dst_mip2)
+    # # sitk.WriteImage(mbf_ffd_morepoint, dst_mbf2)
+
+    # print('rigid registration step 3...')
+    # #第三步（种）配准模型：第一步的配准结果作为第二步模型的初始值，执行配准
+    # ffd_ffd_transform_morepoint,ffd_ffd_metric = bspline_registration_morepoint(fixed_image = fixed_image, 
+    #                                     moving_image = mip_ffd,
+    #                                     fixed_image_mask = None,
+    #                                     fixed_points = None, 
+    #                                     moving_points = None
+    #                                     )
+    # mip_ffd_ffd = perform_transform(ffd_ffd_transform_morepoint,fixed_image,mip_ffd)
+    # mbf_ffd_ffd = perform_transform(ffd_ffd_transform_morepoint,fixed_image,mbf_ffd)
+
+    # # dst_mip3=  os.path.join(save_path,patient_folder +'_MIP_regis_ffd_ffd_morepoint_'+str(ffd_ffd_metric)+'.nii.gz')
+    # # dst_mbf3=  os.path.join(save_path,patient_folder + '_MBF_regis_ffd_ffd_morepoint_'+str(ffd_ffd_metric)+'.nii.gz')
+    # # sitk.WriteImage(mip_ffd_ffd, dst_mip3)
+    # # sitk.WriteImage(mbf_ffd_ffd, dst_mbf3)
+
+
+    mip_ffd_morepoint = mip_ffd
+    mbf_ffd_morepoint = mbf_ffd
+    mip_ffd_ffd = mip_ffd
+    mbf_ffd_ffd = mbf_ffd
+
+    mip_ffd.CopyInformation(fixed_image)
+    mbf_ffd.CopyInformation(fixed_image)
+    mip_ffd_morepoint.CopyInformation(fixed_image)
+    mbf_ffd_morepoint.CopyInformation(fixed_image)
+    mip_ffd_ffd.CopyInformation(fixed_image)
+    mbf_ffd_ffd.CopyInformation(fixed_image)
+
+    return fixed_image, mip_ffd, mbf_ffd, mip_ffd_morepoint, mbf_ffd_morepoint, mip_ffd_ffd, mbf_ffd_ffd
+
 
 if __name__ =='__main__':
 

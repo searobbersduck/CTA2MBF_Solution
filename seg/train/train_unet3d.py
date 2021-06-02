@@ -139,6 +139,6 @@ def main():
 
 
 if __name__ == '__main__':
-    fire.Fire()
-    # main()
+    # fire.Fire()
+    main()
     # inference('../data/seg/nii_file/1.3.12.2.1107.5.1.4.60320.30000015012900333934300003426/img.nii.gz', '../data/seg/model/cardiac_seg_train_0.013_val_0.020', '../data/seg/inference/test')

@@ -63,8 +63,6 @@ def resample_cardiac_to_raw_size(img, raw_spc, dst_spacing, direct, origin):
     return img_res, img_res_arr
 
 
-
-
 def resample_cardiac_batch(data_root, save_root, dst_size):
     seriesID_ = os.listdir(data_root)
     for case, seriesID in tqdm(enumerate(seriesID_)):
@@ -199,4 +197,4 @@ def test_CardiacSeg_DS():
 if __name__ == '__main__':
     # test_resample_cardiac_batch()
     # test_CardiacSeg_DS()
-    split_train_val_set('../data/seg/np_file', '../data/seg/config')
+    # split_train_val_set('../data/seg/np_file', '../data/seg/config')
