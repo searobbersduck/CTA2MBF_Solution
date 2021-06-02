@@ -1333,7 +1333,7 @@ def preprocess_data_140():
     # step 5 chamber segmentation
     # data_root = os.path.join(root, '3.sorted_dcm')
     # out_dir = os.path.join(root, '3.sorted_mask')
-    # cardiac_segmentation(data_root, out_dir)
+    # cardiac_segmentation_new_algo(data_root, out_dir)
     # step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
 
 
