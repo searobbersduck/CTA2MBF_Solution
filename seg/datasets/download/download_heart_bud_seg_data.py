@@ -15,7 +15,7 @@ from MedCommon.utils.download_utils import download_dcms_with_website, download_
 def get_heart_hub_seg_series_uids(anno_dir, out_file):
     '''
     anno_dir: '../../../data/cardiac/seg/heart_hub/annotation'
-    or anno_dir: '/fileser/zhangwd/data/cardiac/seg/heart_hub/annotation'
+    or anno_dir: '/data/medical/cardiac/seg/heart_hub/annotation'
 
     tree -L 2
     .
@@ -48,7 +48,7 @@ def download_images(out_path, config_file):
 def download_masks(out_path, anno_dir):
     '''
     anno_dir: '../../../data/cardiac/seg/heart_hub/annotation'
-    or anno_dir: '/fileser/zhangwd/data/cardiac/seg/heart_hub/annotation'
+    or anno_dir: '/data/medical/cardiac/seg/heart_hub/annotation'
 
     tree -L 2
     .

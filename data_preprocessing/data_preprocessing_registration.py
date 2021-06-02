@@ -86,7 +86,7 @@ def elastix_register_images_one_case(cta_file, mip_file, avg_file, bf_file, out_
 
 def test_elastix_register_images_one_case():
     pid = '1315171'
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted/'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted/'
     pid_path = os.path.join(data_root, pid)
     cta_dir = os.path.join(pid_path, 'CTA')
     cta_files = os.listdir(cta_dir)
@@ -108,7 +108,7 @@ def test_elastix_register_images_one_case():
     print(avg_file)
     print(bf_file)
 
-    out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/4.registration_test/{}'.format(pid)
+    out_dir = '/data/medical/cardiac/cta2mbf/20201216/4.registration_test/{}'.format(pid)
 
     beg = time.time()
     # register_images(cta_file, mip_file, bf_file, True)
@@ -190,12 +190,12 @@ def elastix_register_images_multi_task(data_root, out_dir, process_num=6, reuse=
     pool.join()
     
 def test_elastix_register_images_multi_task():
-    # data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted'
-    # out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/4.registration_batch1'
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/data_114_20210318/3.sorted_dcm'
-    out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/data_114_20210318/4.registration_batch'
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/data_66_20210517/3.sorted_dcm'
-    out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/data_66_20210517/4.registration_batch'
+    # data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted'
+    # out_dir = '/data/medical/cardiac/cta2mbf/20201216/4.registration_batch1'
+    data_root = '/data/medical/cardiac/cta2mbf/data_114_20210318/3.sorted_dcm'
+    out_dir = '/data/medical/cardiac/cta2mbf/data_114_20210318/4.registration_batch'
+    data_root = '/data/medical/cardiac/cta2mbf/data_66_20210517/3.sorted_dcm'
+    out_dir = '/data/medical/cardiac/cta2mbf/data_66_20210517/4.registration_batch'
     os.makedirs(out_dir, exist_ok=True)    
     elastix_register_images_multi_task(data_root, out_dir, 6, reuse=True)
 

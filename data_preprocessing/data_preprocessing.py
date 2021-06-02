@@ -25,7 +25,7 @@ import time
 import SimpleITK as sitk
 
 
-data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori'
+data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori'
 
 # 1. 将数据统一调整为如下格式，每个pid下，直接存放dicom文件
 '''
@@ -467,8 +467,8 @@ def step_1_crop_from_ori1_to_ori2():
         ├── CTAMBF-26例
         └── 心肌灌注
     '''
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori'
-    dst_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_2'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori'
+    dst_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_2'
     copy_from_folder_format1(os.path.join(data_root, 'CTAMBF-11例'), dst_root)
     copy_from_folder_format1(os.path.join(data_root, 'CTAMBF-26例'), dst_root)
     copy_from_folder_format2(os.path.join(data_root, 'CTAMBF-14例'), dst_root)
@@ -530,8 +530,8 @@ def sort_by_series_uid_multiprocessing(in_root, out_root, process_num=12):
     pool.join()
 
 def step_2_sort_by_series_uid():
-    in_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_2'
-    out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_3'
+    in_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_2'
+    out_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_3'
     sort_by_series_uid_multiprocessing(in_root, out_root)
 
 
@@ -605,8 +605,8 @@ def extract_ctp_related(data_root, out_root):
             shutil.copytree(src_bf_file, dst_bf_file)
 
 def step_3_1_extract_ctp_related():
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_3'
-    out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_3'
+    out_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted'
     extract_ctp_related(data_root, out_root)
 
 def extract_cta_file(data_root, cta_config_file, out_root):
@@ -627,26 +627,26 @@ def extract_cta_file(data_root, cta_config_file, out_root):
         shutil.copytree(src_cta_file, dst_cta_file)
 
 def step_3_2_extract_cta_file():
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_3'
-    cta_config_file = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.config_info/cta_series.csv'
-    out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_3'
+    cta_config_file = '/data/medical/cardiac/cta2mbf/20201216/0.config_info/cta_series.csv'
+    out_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted'
     extract_cta_file(data_root, cta_config_file, out_root)
 
 def test_extract_ctp_related():
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_3'
-    out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_4'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_3'
+    out_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_4'
     extract_ctp_related(data_root, out_root)
 
-
-def cardiac_segmentation(data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted', 
-    out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask'):
+# 老算法，目前不可用
+def cardiac_segmentation(data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted', 
+    out_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask'):
 
     import torch
     import torch.nn
 
-    # data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted'
-    # out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask'
-    # out_cta_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask/CTA'
+    # data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted'
+    # out_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask'
+    # out_cta_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask/CTA'
     
     # os.makedirs(out_cta_dir, exist_ok=True)
 
@@ -724,11 +724,47 @@ def cardiac_segmentation(data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/2020
         sitk.WriteImage(image, out_cta_file)
         sitk.WriteImage(pred_mask, out_cta_mask_file)
 
+def cardiac_segmentation_new_algo(
+        data_root=None, 
+        out_dir = None
+    ):
+    import torch
+    from external_lib.MedCommon.experiments.seg.cardiac.chamber.inference import load_inference_opts
+    from external_lib.MedCommon.segmentation.runner.train_seg import SegmentationTrainer
+    opts = load_inference_opts()
+    model = SegmentationTrainer.load_model(opts)
+    model = torch.nn.DataParallel(model).cuda()
+    model.eval()
+
+    for pid in tqdm(os.listdir(data_root)):
+        pid_path = os.path.join(data_root, pid)
+        if not os.path.isdir(pid_path):
+            print('patient path not exist!\t{}'.format(pid_path))
+            continue
+        cta_root = os.path.join(pid_path, 'CTA')
+        cta_files = os.listdir(cta_root)
+        cta_file = cta_files[0]
+        cta_file = os.path.join(cta_root, cta_file)
+        if not os.path.isdir(cta_file):
+            print('cta file not exist!\t{}'.format(cta_file))
+            continue
+        image, pred_mask = SegmentationTrainer.inference_one_case(model, cta_file, is_dcm=True)
+
+        out_cta_dir = os.path.join(out_dir, pid, 'CTA')
+        os.makedirs(out_cta_dir, exist_ok=True)
+        out_cta_file = os.path.join(out_cta_dir, 'CTA.nii.gz')
+        out_cta_mask_file = os.path.join(out_cta_dir, 'CTA_MASK.nii.gz')
+
+        sitk.WriteImage(image, out_cta_file)
+        sitk.WriteImage(pred_mask, out_cta_mask_file)    
+    
+
+
 def step_3_3_segment_cardiac():
     cardiac_segmentation()
 
-def step_3_3_segment_cardiac_connected_region(root_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask'):
-    # root_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask'
+def step_3_3_segment_cardiac_connected_region(root_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask'):
+    # root_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask'
     for pid in tqdm(os.listdir(root_dir)):
         pid_path = os.path.join(root_dir, pid)
         if not os.path.isdir(pid_path):
@@ -763,9 +799,9 @@ def step_3_3_segment_cardiac_connected_region(root_dir = '/fileser/zhangwd/data/
             print(e)
             print('====> Error case:\t{}'.format(pid))
 
-def step_3_4_convert_dicom_series_to_nii(data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted', out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_nii'):
-    # data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted'
-    # out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_nii'
+def step_3_4_convert_dicom_series_to_nii(data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted', out_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_nii'):
+    # data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted'
+    # out_dir = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_nii'
     
     os.makedirs(out_dir, exist_ok=True)
 
@@ -852,7 +888,7 @@ def rigid_register_images(cta_file, mip_file, bf_file, out_dir, is_dcm=False):
 
 def test_register_images():
     pid = '1315171'
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted/'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted/'
     pid_path = os.path.join(data_root, pid)
     cta_dir = os.path.join(pid_path, 'CTA')
     cta_files = os.listdir(cta_dir)
@@ -864,11 +900,11 @@ def test_register_images():
     bf_files = os.listdir(bf_dir)
     bf_file = os.path.join(bf_dir, bf_files[0])
     
-    # cta_file = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted/1072995/CTA/1.3.12.2.1107.5.8.15.130931.30000020100515452825700016870'
-    # mip_file = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted/1072995/MIP/1.3.12.2.1107.5.8.15.130931.30000020100515452825700018235'
-    # bf_file = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted/1072995/BF/1.3.12.2.1107.5.8.15.130931.30000020100515452825700018341'
+    # cta_file = '/data/medical/cardiac/cta2mbf/20201216/3.sorted/1072995/CTA/1.3.12.2.1107.5.8.15.130931.30000020100515452825700016870'
+    # mip_file = '/data/medical/cardiac/cta2mbf/20201216/3.sorted/1072995/MIP/1.3.12.2.1107.5.8.15.130931.30000020100515452825700018235'
+    # bf_file = '/data/medical/cardiac/cta2mbf/20201216/3.sorted/1072995/BF/1.3.12.2.1107.5.8.15.130931.30000020100515452825700018341'
 
-    out_dir = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/4.registration_test/{}'.format(pid)
+    out_dir = '/data/medical/cardiac/cta2mbf/20201216/4.registration_test/{}'.format(pid)
 
     beg = time.time()
     # register_images(cta_file, mip_file, bf_file, True)
@@ -883,7 +919,7 @@ def generate_register_cmd(
         param1_path = '/data/hjy/elastix-5.0/params_copd/parameters_Affine.txt',
         param2_path = '/data/hjy/elastix-5.0/params_copd/parameters_BSpline.txt',
         param3_path = '/data/hjy/elastix-5.0/params_copd/parameters_Rigid.txt'):
-    # data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_nii'
+    # data_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_nii'
     # data_root = '/data/zhangwd/data/cardiac/3.sorted_nii'
     # out_file = '/data/zhangwd/data/cardiac/3.sorted_nii_config/registration_mbf2cta.sh'
     # elastic_path = '/data/hjy/elastix-5.0/elastix'
@@ -924,7 +960,7 @@ def check_last_5():
     '''
     验证通过序列号的后五位字符，能否做到和序列号一一对应，结论是不可以
     '''
-    data_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/0.ori_3'
+    data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori_3'
     suids_list = []
     for pid in tqdm(os.listdir(data_root)):
         patient_path = os.path.join(data_root, pid)
@@ -944,17 +980,17 @@ def check_last_5():
     print('hello world!')
 
 def step_5_1_extract_mbf_myocardium(
-        mbf_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/4.registration_batch1',
-        mask_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask',
-        out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/5.mbf_myocardium',
+        mbf_root = '/data/medical/cardiac/cta2mbf/20201216/4.registration_batch1',
+        mask_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask',
+        out_root = '/data/medical/cardiac/cta2mbf/20201216/5.mbf_myocardium',
         mask_pattern = 'CTA/CTA_MASK_connected.nii.gz',
         registered_pattern = 'cta_mip_bf.nii.gz',
         out_mbf_pattern = 'mbf.nii.gz',
         myocardium_label = 6
     ):
-    # mbf_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/4.registration_batch1'
-    # mask_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask'
-    # out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/5.mbf_myocardium'
+    # mbf_root = '/data/medical/cardiac/cta2mbf/20201216/4.registration_batch1'
+    # mask_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask'
+    # out_root = '/data/medical/cardiac/cta2mbf/20201216/5.mbf_myocardium'
 
     # mask_pattern = 'CTA/CTA_MASK_connected.nii.gz'
     # registered_pattern = 'cta_mip_bf.nii.gz'
@@ -1002,17 +1038,17 @@ def step_5_1_extract_mbf_myocardium(
             
 
 def step_5_2_extract_pericardium_bbox(
-        mask_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask',
-        cta_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask',
-        mbf_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/5.mbf_myocardium',
-        out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/5.mbf_myocardium',
+        mask_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask',
+        cta_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask',
+        mbf_root = '/data/medical/cardiac/cta2mbf/20201216/5.mbf_myocardium',
+        out_root = '/data/medical/cardiac/cta2mbf/20201216/5.mbf_myocardium',
         mask_pattern = 'CTA/CTA_MASK_connected.nii.gz', 
         mbf_pattern = 'mbf.nii.gz'
     ):
-    # mask_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/3.sorted_mask'
+    # mask_root = '/data/medical/cardiac/cta2mbf/20201216/3.sorted_mask'
     cta_root = mask_root
-    # mbf_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/5.mbf_myocardium'
-    # out_root = '/fileser/zhangwd/data/cardiac/cta2mbf/20201216/5.mbf_myocardium'
+    # mbf_root = '/data/medical/cardiac/cta2mbf/20201216/5.mbf_myocardium'
+    # out_root = '/data/medical/cardiac/cta2mbf/20201216/5.mbf_myocardium'
     # mask_pattern = 'CTA/CTA_MASK_connected.nii.gz'
 
     pids = os.listdir(mbf_root)
@@ -1089,8 +1125,8 @@ def analyze_data_cropped_cta(root_dir, cta_pattern='cropped_cta.nii.gz'):
 
 
 def preprocess_data_114_extract_modalitys(in_root, out_root):
-    # config_file = '/fileser/zhangwd/data/cardiac/cta2mbf/data_114_20210318/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
-    config_file = '/fileser/zhangwd/data/cardiac/cta2mbf/data_66_20210517/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
+    # config_file = '/data/medical/cardiac/cta2mbf/data_114_20210318/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
+    config_file = '/data/medical/cardiac/cta2mbf/data_66_20210517/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
     # 老表格sheet_num为0
     # sheet_num = 0
     sheet_num = 1
@@ -1149,7 +1185,7 @@ def preprocess_data_114_extract_modalitys(in_root, out_root):
             print('====> Error case:\t', pid)
 
 def preprocess_data_114():
-    root = '/fileser/zhangwd/data/cardiac/cta2mbf/data_114_20210318'
+    root = '/data/medical/cardiac/cta2mbf/data_114_20210318'
     
     # # step 2
     # in_root = os.path.join(root, '0.ori_2')
@@ -1193,7 +1229,7 @@ def preprocess_data_114():
 
     # step 6 extract myocardium from bf images
     # registration_root = '/data/zhangwd/data/cardiac/data_114/3.sorted_nii'
-    # registration_root = '/fileser/zhangwd/data/cardiac/cta2mbf/data_114_20210318/4.registration_batch'
+    # registration_root = '/data/medical/cardiac/cta2mbf/data_114_20210318/4.registration_batch'
     # mbf_root = registration_root
     # mask_root = os.path.join(root,'3.sorted_mask')
     # out_root = os.path.join(root,'5.mbf_myocardium')
@@ -1220,7 +1256,7 @@ def preprocess_data_114():
     analyze_data_cropped_cta(cta_root)
 
 def preprocess_data_66():
-    root = '/fileser/zhangwd/data/cardiac/cta2mbf/data_66_20210517'
+    root = '/data/medical/cardiac/cta2mbf/data_66_20210517'
     
     # step 2
     # in_root = os.path.join(root, 'CTP灌注各类数据（李主任）')
@@ -1271,6 +1307,25 @@ def preprocess_data_66():
     mbf_pattern = 'registration_cta_mip_bf_myocardium.nii.gz'
     step_5_2_extract_pericardium_bbox(mask_root, cta_root, mbf_root, out_root, mask_pattern, mbf_pattern)
 
+def preprocess_data_140():
+    root = '/data/medical/cardiac/cta2mbf/data_140_20210602'
+    
+    # # step 2
+    # in_root = os.path.join(root, 'CTP灌注各类数据（李主任）')
+    # out_root = os.path.join(root, '0.ori_3')
+    # sort_by_series_uid_multiprocessing(in_root, out_root, 24)    
+
+    # step 3
+    in_root = os.path.join(root, '0.ori_3')
+    out_root = os.path.join(root, '3.sorted_dcm')
+    preprocess_data_114_extract_modalitys(in_root, out_root)
+
+    # step 3
+    in_root = os.path.join(root, '3.sorted_dcm')
+    out_root = os.path.join(root, '3.sorted_nii')
+    step_3_4_convert_dicom_series_to_nii(in_root, out_root)
+
+    
 
 if __name__ == '__main__':
     # step_1_crop_from_ori1_to_ori2()
@@ -1288,4 +1343,5 @@ if __name__ == '__main__':
 
     # preprocess_data_114_extract_modalitys(None, None)
     # preprocess_data_114()
-    preprocess_data_66()
+    # preprocess_data_66()
+    preprocess_data_140()
