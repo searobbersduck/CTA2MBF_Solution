@@ -1324,8 +1324,20 @@ def preprocess_data_140():
     in_root = os.path.join(root, '3.sorted_dcm')
     out_root = os.path.join(root, '3.sorted_nii')
     step_3_4_convert_dicom_series_to_nii(in_root, out_root)
-
     
+    # step 4 generate registration cmd 
+    '''
+    配准过程执行data_preprocessing_registration.py
+    '''
+
+    # step 5 chamber segmentation
+    # data_root = os.path.join(root, '3.sorted_dcm')
+    # out_dir = os.path.join(root, '3.sorted_mask')
+    # cardiac_segmentation(data_root, out_dir)
+    # step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
+
+
+
 
 if __name__ == '__main__':
     # step_1_crop_from_ori1_to_ori2()
