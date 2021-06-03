@@ -18,8 +18,11 @@ tree -L 1
 ├── 6.inference_slicemap
 ├── 7.analysis_result
 ├── annotation
-└── CTP灌注各类数据（李主任）
+└── 
 ```
+
+### annotation
+数据标注表格
 
 ### 0.ori_3
 存储原始的数据，只根据series instance uid进行了文件夹的划分：
@@ -159,3 +162,28 @@ tree -L 2
     └── registration_cta_mip_bf_myocardium.nii.gz
 
 ```
+
+----
+
+### 6.inference_384x384x160
+
+按照384x384x160大小的数据块进行推断的结果，推断时，采用`model.eval()`的模式，训练时采用`model.train()`的模式
+
+### 6.inference_384x384x160_train
+
+按照384x384x160大小的数据块进行推断的结果，推断时，采用`model.train()`的模式，之所以会有如此的推断结果，因为训练时，采用`model.train()`的模式，而推断时采用`model.eval()`的模式，效果很差。
+
+### 6.inference_384x384x160_eval
+
+按照384x384x160大小的数据块进行推断的结果，推断时，采用`model.eval()`的模式, 训练时也使用`model.eval()`的模式
+
+### 6.inference_slicemap
+
+将推断结果，生成2D图片
+
+---
+
+### 7.analysis_result
+
+记录推断数据的MAE结果，可以据此挑选效果比较好的数据
+

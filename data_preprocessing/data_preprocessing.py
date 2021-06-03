@@ -1331,12 +1331,33 @@ def preprocess_data_140():
     '''
 
     # step 5 chamber segmentation
-    data_root = os.path.join(root, '3.sorted_dcm')
-    out_dir = os.path.join(root, '3.sorted_mask')
-    cardiac_segmentation_new_algo(data_root, out_dir)
-    step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
+    # data_root = os.path.join(root, '3.sorted_dcm')
+    # out_dir = os.path.join(root, '3.sorted_mask')
+    # cardiac_segmentation_new_algo(data_root, out_dir)
+    # step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
 
+    # step 6 extract myocardium from bf images
+    registration_root = os.path.join(root, '4.registration_batch')
+    mbf_root = registration_root
+    mask_root = os.path.join(root,'3.sorted_mask')
+    out_root = os.path.join(root,'5.mbf_myocardium')
+    mask_pattern = 'CTA/CTA_MASK_connected.nii.gz'
+    # registered_pattern = 'registration_bf_avg.mha'
+    registered_pattern = 'cta_mip_bf.nii.gz'
+    # out_mbf_pattern = 'registration_bf_avg_myocardium.nii.gz'
+    out_mbf_pattern = 'registration_cta_mip_bf_myocardium.nii.gz'
+    myocardium_label = 6
+    step_5_1_extract_mbf_myocardium(mbf_root, mask_root, out_root, mask_pattern, registered_pattern, out_mbf_pattern, myocardium_label)
 
+    # step 7 extract bbox from cta images
+    mask_root = os.path.join(root, '3.sorted_mask')
+    cta_root = mask_root
+    mbf_root = os.path.join(root, '5.mbf_myocardium')
+    out_root = os.path.join(root, '5.mbf_myocardium')
+    mask_pattern = 'CTA/CTA_MASK_connected.nii.gz'
+    # mbf_pattern = 'registration_bf_avg_myocardium.nii.gz'
+    mbf_pattern = 'registration_cta_mip_bf_myocardium.nii.gz'
+    step_5_2_extract_pericardium_bbox(mask_root, cta_root, mbf_root, out_root, mask_pattern, mbf_pattern)
 
 
 if __name__ == '__main__':
