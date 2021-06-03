@@ -14,6 +14,7 @@ checkpoints
 *.nii
 *.mhd
 *.mha
+history
 
 results
 gan/train/results

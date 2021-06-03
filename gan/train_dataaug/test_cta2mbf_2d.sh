@@ -1,1 +1,0 @@
-python train_cta2mbf_2d.py --dataroot ../../data/tmp --input_nc 1 --output_nc 1 --gpu_ids 3 --model pix2pix --netG resnet_9blocks --batch_size 1
