@@ -17,4 +17,17 @@ a solution for generating BF image from CTA image
     5. 分割心脏腔室
     6. 提取心肌部分的MBF影像
     7. 提取包含心肌bbox的CTA/MBF/MIP/AVG数据对
+        
+        * 配准效果图
+        ![4.配准](data_preprocessing/img/1023293/register_bf2cta.gif)
+
+        * 根据配准结果以及腔室分割的心肌标签将心肌的区域提取出来
+        ![4.配准](data_preprocessing/img/1023293/register_bf2cta_myocardium.gif)
+
+        * 根据腔室分割的标签，提取出用于生成训练的心脏周边bbox数据
+        ![4.配准](data_preprocessing/img/1023293/register_bf2cta_myocardium_cropped.gif)
+
 2. 数据说明：[readme.md](data_preprocessing/readme.md)
+
+## 模型训练
+
