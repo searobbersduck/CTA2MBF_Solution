@@ -47,7 +47,8 @@ todo:
 
 ## 模型推断
 
-脚本参见:[inference.sh](train/inference.sh)
-
+1. 脚本参见:[inference.sh](train/inference.sh)
+2. 将3D数据转换成2D数据进行展示：
+3. 计算生成数据的指标：todo
 
 
