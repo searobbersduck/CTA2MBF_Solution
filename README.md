@@ -31,3 +31,23 @@ a solution for generating BF image from CTA image
 
 ## 模型训练
 
+### BF自监督模型训练
+
+### L1 Loss
+
+脚本参见:[train_mbf.sh](train/train_mbf.sh)
+
+### L1 Loss + Mask Loss
+
+脚本参见:[train_mbf.sh](train/train_mbf.sh)
+
+### L1 Loss + Mask Loss + Matching Loss (self supervised)
+
+todo:
+
+## 模型推断
+
+脚本参见:[inference.sh](train/inference.sh)
+
+
+
