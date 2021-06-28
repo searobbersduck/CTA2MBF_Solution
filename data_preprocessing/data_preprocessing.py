@@ -18,11 +18,12 @@ from external_lib.MedCommon.utils.mask_bounding_utils import MaskBoundingUtils
 from external_lib.MedCommon.experiments.seg.cardiac.chamber_seg.train.train import load_cardic_inference_model
 from external_lib.MedCommon.segmentation.runner.train_seg import SegmentationTrainer
 
-from gan.datasets.registration.registration import initial_registration, perform_transform, bspline_registration, bspline_registration_morepoint, registration_three_phase_impl
+from history.gan.datasets.registration.registration import initial_registration, perform_transform, bspline_registration, bspline_registration_morepoint, registration_three_phase_impl
 
 import shutil
 import time
 import SimpleITK as sitk
+import numpy as np
 
 
 data_root = '/data/medical/cardiac/cta2mbf/20201216/0.ori'
@@ -1122,6 +1123,21 @@ def analyze_data_cropped_cta(root_dir, cta_pattern='cropped_cta.nii.gz'):
 
     print('\n'.join(infos))
 
+def extract_mbf_mask_onecase(sub_root_dir):
+    mbf_file = os.path.join(sub_root_dir, 'cropped_mbf.nii.gz')
+    mbf_mask_file = os.path.join(sub_root_dir, 'cropped_mbf_mask.nii.gz')
+    mbf_img = sitk.ReadImage(mbf_file)
+    mbf_arr = sitk.GetArrayFromImage(mbf_img)
+    mbf_mask_arr = np.array(mbf_arr > 0, dtype=np.uint8)
+    mbf_mask_img = sitk.GetImageFromArray(mbf_mask_arr)
+    mbf_mask_img.CopyInformation(mbf_img)
+    sitk.WriteImage(mbf_mask_img, mbf_mask_file)
+
+def extract_mbf_mask(root_dir):
+    for suid in tqdm(os.listdir(root_dir)):
+        sub_root_dir = os.path.join(root_dir, '{}'.format(suid))
+        extract_mbf_mask_onecase(sub_root_dir)
+
 
 
 def preprocess_data_114_extract_modalitys(in_root, out_root):
@@ -1252,8 +1268,12 @@ def preprocess_data_114():
     # step_5_2_extract_pericardium_bbox(mask_root, cta_root, mbf_root, out_root, mask_pattern, mbf_pattern)
 
     # step 8 分析现有cta数据，心脏部分的size
+    # cta_root = os.path.join(root, '5.mbf_myocardium')
+    # analyze_data_cropped_cta(cta_root)
+
+    # step 9
     cta_root = os.path.join(root, '5.mbf_myocardium')
-    analyze_data_cropped_cta(cta_root)
+    extract_mbf_mask(cta_root)
 
 def preprocess_data_66():
     root = '/data/medical/cardiac/cta2mbf/data_66_20210517'
@@ -1360,6 +1380,15 @@ def preprocess_data_140():
     step_5_2_extract_pericardium_bbox(mask_root, cta_root, mbf_root, out_root, mask_pattern, mbf_pattern)
 
 
+# copy自监督可以使用的数据
+def copy_ssl_data(data_root, out_root):
+    os.makedirs(out_root, exist_ok=True)
+    for suid in tqdm(os.listdir(data_root)):
+        src_mbf_file = os.path.join(data_root, '{}'.format(suid), 'cropped_mbf.nii.gz')
+        dst_mbf_file = os.path.join(out_root, '{}_cropped_mbf.nii.gz'.format(suid))
+        shutil.copyfile(src_mbf_file, dst_mbf_file)
+
+
 if __name__ == '__main__':
     # step_1_crop_from_ori1_to_ori2()
     # step_2_sort_by_series_uid()
@@ -1377,4 +1406,14 @@ if __name__ == '__main__':
     # preprocess_data_114_extract_modalitys(None, None)
     # preprocess_data_114()
     # preprocess_data_66()
-    preprocess_data_140()
+    # preprocess_data_140()
+    
+    # 生成自监督数据
+    copy_ssl_data(
+            '/data/medical/cardiac/cta2mbf/data_114_20210318/5.mbf_myocardium', 
+            '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
+        )
+    copy_ssl_data(
+            '/data/medical/cardiac/cta2mbf/data_140_20210602/5.mbf_myocardium', 
+            '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
+        )
