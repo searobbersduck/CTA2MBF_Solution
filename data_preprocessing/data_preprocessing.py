@@ -14,11 +14,12 @@ from external_lib.MedCommon.utils.dicom_tag_utils import DicomTagUtils
 from external_lib.MedCommon.utils.data_io_utils import DataIO
 from external_lib.MedCommon.utils.image_postprocessing_utils import ImagePostProcessingUtils
 from external_lib.MedCommon.utils.mask_bounding_utils import MaskBoundingUtils
+from external_lib.MedCommon.utils.dicom_tag_utils import DicomTagUtils
 
 from external_lib.MedCommon.experiments.seg.cardiac.chamber_seg.train.train import load_cardic_inference_model
 from external_lib.MedCommon.segmentation.runner.train_seg import SegmentationTrainer
 
-from history.gan.datasets.registration.registration import initial_registration, perform_transform, bspline_registration, bspline_registration_morepoint, registration_three_phase_impl
+# from history.gan.datasets.registration.registration import initial_registration, perform_transform, bspline_registration, bspline_registration_morepoint, registration_three_phase_impl
 
 import shutil
 import time
@@ -1389,6 +1390,50 @@ def copy_ssl_data(data_root, out_root):
         shutil.copyfile(src_mbf_file, dst_mbf_file)
 
 
+'''
+这里插入的是个题外话，数据入组的时候整错了，我能怎么办呢？
+'''
+def extract_cta_systole(root_dir):
+    systold_pids = []
+    mbf_root = os.path.join(os.path.dirname(root_dir), '5.mbf_myocardium')
+    exist_pids = os.listdir(mbf_root)
+    for pid in tqdm(os.listdir(root_dir)):
+        try:
+            cta_root = os.path.join(root_dir, pid, 'CTA')
+            cta_suid  = os.path.join(cta_root, os.listdir(cta_root)[0])
+            metadata = DicomTagUtils.load_metadata(cta_suid, is_series=True)
+            dsc = metadata.SeriesDescription
+            if 'BestSyst' in dsc:
+                systold_pids.append(pid)
+            # print('hello world!')
+        except:
+            pass
+    systold_pids = [os.path.join(mbf_root, i) for i in systold_pids if i in exist_pids]
+    return systold_pids
+
+
+def extract_cta_systole_batch(out_dir='/data/medical/cardiac/cta2mbf/data_155_20210628/5.mbf_myocardium'):
+    systold_pids = []
+    tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_114_20210318/3.sorted_dcm')
+    systold_pids += tmp_pids
+    tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_140_20210602/3.sorted_dcm')    
+    systold_pids += tmp_pids
+    print(systold_pids)
+
+    os.makedirs(out_dir, exist_ok=True)
+    exist_ids = []
+    for pid in tqdm(systold_pids):
+        try:
+            src = pid
+            num = os.path.basename(src)
+            if num in exist_ids:
+                continue
+            dst = os.path.join(out_dir, num)
+            shutil.copytree(src, dst)
+            exist_ids.append(num)
+        except:
+            pass
+
 if __name__ == '__main__':
     # step_1_crop_from_ori1_to_ori2()
     # step_2_sort_by_series_uid()
@@ -1408,12 +1453,14 @@ if __name__ == '__main__':
     # preprocess_data_66()
     # preprocess_data_140()
     
-    # 生成自监督数据
-    copy_ssl_data(
-            '/data/medical/cardiac/cta2mbf/data_114_20210318/5.mbf_myocardium', 
-            '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
-        )
-    copy_ssl_data(
-            '/data/medical/cardiac/cta2mbf/data_140_20210602/5.mbf_myocardium', 
-            '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
-        )
+    # # 生成自监督数据
+    # copy_ssl_data(
+    #         '/data/medical/cardiac/cta2mbf/data_114_20210318/5.mbf_myocardium', 
+    #         '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
+    #     )
+    # copy_ssl_data(
+    #         '/data/medical/cardiac/cta2mbf/data_140_20210602/5.mbf_myocardium', 
+    #         '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
+    #     )
+
+    extract_cta_systole_batch()
