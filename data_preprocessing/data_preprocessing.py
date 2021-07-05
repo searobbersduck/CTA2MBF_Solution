@@ -1352,10 +1352,10 @@ def preprocess_data_140():
     '''
 
     # step 5 chamber segmentation
-    # data_root = os.path.join(root, '3.sorted_dcm')
-    # out_dir = os.path.join(root, '3.sorted_mask')
-    # cardiac_segmentation_new_algo(data_root, out_dir)
-    # step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
+    data_root = os.path.join(root, '3.sorted_dcm')
+    out_dir = os.path.join(root, '3.sorted_mask')
+    cardiac_segmentation_new_algo(data_root, out_dir)
+    step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
 
     # step 6 extract myocardium from bf images
     registration_root = os.path.join(root, '4.registration_batch')
@@ -1389,6 +1389,10 @@ def copy_ssl_data(data_root, out_root):
         dst_mbf_file = os.path.join(out_root, '{}_cropped_mbf.nii.gz'.format(suid))
         shutil.copyfile(src_mbf_file, dst_mbf_file)
 
+
+'''
+这是个分界线，以下在扯淡
+'''
 
 '''
 这里插入的是个题外话，数据入组的时候整错了，我能怎么办呢？
@@ -1434,6 +1438,36 @@ def extract_cta_systole_batch(out_dir='/data/medical/cardiac/cta2mbf/data_155_20
         except:
             pass
 
+def preprocess_data_140_update():
+    root = '/data/medical/cardiac/cta2mbf/data_140_20210602_update'
+    # # step 2
+    # in_root = os.path.join(root, 'data_wtf_127_20210702')
+    # out_root = os.path.join(root, '0.ori_3')
+    # sort_by_series_uid_multiprocessing(in_root, out_root, 24)    
+
+    # # step 3
+    in_root = os.path.join(root, '0.ori_3')
+    out_root = os.path.join(root, '3.sorted_dcm')
+    for pid in tqdm(os.listdir(in_root)):
+        pid_path = os.path.join(in_root, pid)
+        src_files = os.listdir(pid_path)
+        if len(src_files) != 1:
+            print('updated CTA files error:\t{}'.format(pid))
+            continue
+        src_file = os.path.join(pid_path, src_files[0])
+        dst_root = os.path.join(out_root, pid, 'CTA')
+        shutil.rmtree(dst_root)
+        os.makedirs(dst_root, exist_ok=True)
+        dst_file = os.path.join(dst_root, src_files[0])
+        shutil.copytree(src_file, dst_file)
+    
+    # preprocess_data_114_extract_modalitys(in_root, out_root)
+
+    '''
+    剩下的将文件夹名字修改为“data_140_20210602”，并继续preprocess_data_140()的代码
+    '''
+
+
 if __name__ == '__main__':
     # step_1_crop_from_ori1_to_ori2()
     # step_2_sort_by_series_uid()
@@ -1451,7 +1485,7 @@ if __name__ == '__main__':
     # preprocess_data_114_extract_modalitys(None, None)
     # preprocess_data_114()
     # preprocess_data_66()
-    # preprocess_data_140()
+    preprocess_data_140()
     
     # # 生成自监督数据
     # copy_ssl_data(
@@ -1463,4 +1497,6 @@ if __name__ == '__main__':
     #         '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
     #     )
 
-    extract_cta_systole_batch()
+    # extract_cta_systole_batch()
+
+    # preprocess_data_140_update()
