@@ -4,7 +4,7 @@ Version: 1.0
 Autor: searobbersanduck
 Date: 2021-01-06 09:51:38
 LastEditors: searobbersanduck
-LastEditTime: 2021-06-02 10:56:43
+LastEditTime: 2021-07-15 16:52:15
 License : (C)Copyright 2020-2021, MIT
 '''
 
@@ -198,6 +198,8 @@ def test_elastix_register_images_multi_task():
     out_dir = '/data/medical/cardiac/cta2mbf/data_66_20210517/4.registration_batch'
     data_root = '/data/medical/cardiac/cta2mbf/data_140_20210602/3.sorted_dcm'
     out_dir = '/data/medical/cardiac/cta2mbf/data_140_20210602/4.registration_batch'    
+    data_root = '/data/medical/cardiac/cta2mbf/data_114_20210715/3.sorted_dcm'
+    out_dir = '/data/medical/cardiac/cta2mbf/data_114_20210715/4.registration_batch'        
     os.makedirs(out_dir, exist_ok=True)    
     elastix_register_images_multi_task(data_root, out_dir, 6, reuse=True)
 

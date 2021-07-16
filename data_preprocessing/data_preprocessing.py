@@ -1141,9 +1141,13 @@ def extract_mbf_mask(root_dir):
 
 
 
-def preprocess_data_114_extract_modalitys(in_root, out_root):
+def preprocess_data_114_extract_modalitys(
+        in_root, 
+        out_root, 
+        config_file = '/data/medical/cardiac/cta2mbf/data_114_20210715/annotation/00回流数据信息表格（UID)-DD1012(终稿).xlsx'
+    ):
     # config_file = '/data/medical/cardiac/cta2mbf/data_114_20210318/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
-    config_file = '/data/medical/cardiac/cta2mbf/data_66_20210517/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
+    # config_file = '/data/medical/cardiac/cta2mbf/data_66_20210517/annotation/01回流数据信息表格（UID)-DD1012(终稿).xlsx'
     # 老表格sheet_num为0
     # sheet_num = 0
     sheet_num = 1
@@ -1202,22 +1206,23 @@ def preprocess_data_114_extract_modalitys(in_root, out_root):
             print('====> Error case:\t', pid)
 
 def preprocess_data_114():
-    root = '/data/medical/cardiac/cta2mbf/data_114_20210318'
+    # root = '/data/medical/cardiac/cta2mbf/data_114_20210318'
+    root = '/data/medical/cardiac/cta2mbf/data_114_20210715'
     
     # # step 2
     # in_root = os.path.join(root, '0.ori_2')
     # out_root = os.path.join(root, '0.ori_3')
     # sort_by_series_uid_multiprocessing(in_root, out_root, 24)
 
-    # # step 3
-    # in_root = os.path.join(root, '0.ori_3')
-    # out_root = os.path.join(root, '3.sorted_dcm')
-    # preprocess_data_114_extract_modalitys(in_root, out_root)
+    # step 3
+    in_root = os.path.join(root, '0.ori_3')
+    out_root = os.path.join(root, '3.sorted_dcm')
+    preprocess_data_114_extract_modalitys(in_root, out_root)
 
     # step 3
-    # in_root = os.path.join(root, '3.sorted_dcm')
-    # out_root = os.path.join(root, '3.sorted_nii')
-    # step_3_4_convert_dicom_series_to_nii(in_root, out_root)
+    in_root = os.path.join(root, '3.sorted_dcm')
+    out_root = os.path.join(root, '3.sorted_nii')
+    step_3_4_convert_dicom_series_to_nii(in_root, out_root)
 
     # step 4 generate registration cmd 
     '''
@@ -1351,11 +1356,11 @@ def preprocess_data_140():
     配准过程执行data_preprocessing_registration.py
     '''
 
-    # step 5 chamber segmentation
-    data_root = os.path.join(root, '3.sorted_dcm')
-    out_dir = os.path.join(root, '3.sorted_mask')
-    cardiac_segmentation_new_algo(data_root, out_dir)
-    step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
+    # # step 5 chamber segmentation
+    # data_root = os.path.join(root, '3.sorted_dcm')
+    # out_dir = os.path.join(root, '3.sorted_mask')
+    # cardiac_segmentation_new_algo(data_root, out_dir)
+    # step_3_3_segment_cardiac_connected_region(root_dir = os.path.join(root, '3.sorted_mask'))
 
     # step 6 extract myocardium from bf images
     registration_root = os.path.join(root, '4.registration_batch')
@@ -1380,6 +1385,13 @@ def preprocess_data_140():
     mbf_pattern = 'registration_cta_mip_bf_myocardium.nii.gz'
     step_5_2_extract_pericardium_bbox(mask_root, cta_root, mbf_root, out_root, mask_pattern, mbf_pattern)
 
+    # step 8 分析现有cta数据，心脏部分的size
+    # cta_root = os.path.join(root, '5.mbf_myocardium')
+    # analyze_data_cropped_cta(cta_root)
+
+    # step 9
+    cta_root = os.path.join(root, '5.mbf_myocardium')
+    extract_mbf_mask(cta_root)
 
 # copy自监督可以使用的数据
 def copy_ssl_data(data_root, out_root):
@@ -1401,6 +1413,7 @@ def extract_cta_systole(root_dir):
     systold_pids = []
     mbf_root = os.path.join(os.path.dirname(root_dir), '5.mbf_myocardium')
     exist_pids = os.listdir(mbf_root)
+    exist_pids = []
     for pid in tqdm(os.listdir(root_dir)):
         try:
             cta_root = os.path.join(root_dir, pid, 'CTA')
@@ -1418,25 +1431,26 @@ def extract_cta_systole(root_dir):
 
 def extract_cta_systole_batch(out_dir='/data/medical/cardiac/cta2mbf/data_155_20210628/5.mbf_myocardium'):
     systold_pids = []
-    tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_114_20210318/3.sorted_dcm')
+    # tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_114_20210318/3.sorted_dcm')
+    tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_114_20210715/3.sorted_dcm')
     systold_pids += tmp_pids
-    tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_140_20210602/3.sorted_dcm')    
-    systold_pids += tmp_pids
+    # tmp_pids = extract_cta_systole('/data/medical/cardiac/cta2mbf/data_140_20210602/3.sorted_dcm')    
+    # systold_pids += tmp_pids
     print(systold_pids)
 
-    os.makedirs(out_dir, exist_ok=True)
-    exist_ids = []
-    for pid in tqdm(systold_pids):
-        try:
-            src = pid
-            num = os.path.basename(src)
-            if num in exist_ids:
-                continue
-            dst = os.path.join(out_dir, num)
-            shutil.copytree(src, dst)
-            exist_ids.append(num)
-        except:
-            pass
+    # os.makedirs(out_dir, exist_ok=True)
+    # exist_ids = []
+    # for pid in tqdm(systold_pids):
+    #     try:
+    #         src = pid
+    #         num = os.path.basename(src)
+    #         if num in exist_ids:
+    #             continue
+    #         dst = os.path.join(out_dir, num)
+    #         shutil.copytree(src, dst)
+    #         exist_ids.append(num)
+    #     except:
+    #         pass
 
 def preprocess_data_140_update():
     root = '/data/medical/cardiac/cta2mbf/data_140_20210602_update'
@@ -1483,9 +1497,9 @@ if __name__ == '__main__':
     # check_last_5()
 
     # preprocess_data_114_extract_modalitys(None, None)
-    # preprocess_data_114()
+    preprocess_data_114()
     # preprocess_data_66()
-    preprocess_data_140()
+    # preprocess_data_140()
     
     # # 生成自监督数据
     # copy_ssl_data(
