@@ -1214,15 +1214,15 @@ def preprocess_data_114():
     # out_root = os.path.join(root, '0.ori_3')
     # sort_by_series_uid_multiprocessing(in_root, out_root, 24)
 
-    # step 3
-    in_root = os.path.join(root, '0.ori_3')
-    out_root = os.path.join(root, '3.sorted_dcm')
-    preprocess_data_114_extract_modalitys(in_root, out_root)
+    # # step 3
+    # in_root = os.path.join(root, '0.ori_3')
+    # out_root = os.path.join(root, '3.sorted_dcm')
+    # preprocess_data_114_extract_modalitys(in_root, out_root)
 
-    # step 3
-    in_root = os.path.join(root, '3.sorted_dcm')
-    out_root = os.path.join(root, '3.sorted_nii')
-    step_3_4_convert_dicom_series_to_nii(in_root, out_root)
+    # # step 3
+    # in_root = os.path.join(root, '3.sorted_dcm')
+    # out_root = os.path.join(root, '3.sorted_nii')
+    # step_3_4_convert_dicom_series_to_nii(in_root, out_root)
 
     # step 4 generate registration cmd 
     '''
@@ -1497,7 +1497,7 @@ if __name__ == '__main__':
     # check_last_5()
 
     # preprocess_data_114_extract_modalitys(None, None)
-    preprocess_data_114()
+    # preprocess_data_114()
     # preprocess_data_66()
     # preprocess_data_140()
     
@@ -1511,6 +1511,6 @@ if __name__ == '__main__':
     #         '/data/medical/cardiac/cta2mbf/ssl/cropped_ori'
     #     )
 
-    # extract_cta_systole_batch()
+    extract_cta_systole_batch()
 
     # preprocess_data_140_update()
