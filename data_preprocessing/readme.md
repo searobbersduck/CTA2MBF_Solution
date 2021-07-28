@@ -254,3 +254,115 @@ tree -L 2
     step_5_2_extract_pericardium_bbox(mask_root, cta_root, mbf_root, out_root, mask_pattern, mbf_pattern)
 
 ```
+
+
+## 文件夹结构形式
+
+```
+/data/medical/cardiac/cta2mbf$ tree -L 2
+.
+├── 20201216
+│   ├── 0.config_info
+│   ├── 0.ori
+│   ├── 0.ori_2
+│   ├── 0.ori_3
+│   ├── 0.ori_step_2
+│   ├── 3.sorted
+│   ├── 3.sorted_mask
+│   ├── 3.sorted_nii
+│   ├── 3.sorted_npy
+│   ├── 4.registration_batch1
+│   └── 5.mbf_myocardium
+├── 20210114
+│   └── HXJ_FS_XJGNPG_SHLY_20210105
+├── data_114_20210715
+│   ├── 0.ori_3 -> /data/medical/cardiac/cta2mbf/data_114_20210318_old/0.ori_3
+│   ├── 3.sorted_dcm
+│   ├── 3.sorted_mask
+│   ├── 3.sorted_nii
+│   ├── 5.mbf_myocardium
+│   └── annotation
+├── data_140_20210602
+│   ├── 0.ori_3
+│   ├── 3.sorted_dcm
+│   ├── 3.sorted_mask
+│   ├── 3.sorted_nii
+│   ├── 5.mbf_myocardium
+│   └── data_wtf_127_20210702
+├── data_66_20210517
+│   ├── 0.ori_3
+│   ├── 3.sorted_dcm
+│   ├── 3.sorted_mask
+│   ├── 3.sorted_nii
+│   ├── 4.registration_batch
+│   ├── 5.mbf_myocardium
+│   ├── 6.inference
+│   ├── 6.inference_384x384x160
+│   ├── 6.inference_384x384x160_eval
+│   ├── 6.inference_384x384x160_eval_slicemap
+│   ├── 6.inference_384x384x160_train
+│   ├── 6.inference_slicemap
+│   ├── 7.analysis_result
+│   ├── annotation
+│   └── CTP灌注各类数据（李主任）
+├── data_yourname
+│   ├── 5.mbf_myocardium
+│   └── checkpoints
+└── ssl
+    └── cropped_ori
+```
+
+```
+tree -L 1
+.
+├── 20201216
+├── 20210114
+├── data_114_20210715
+├── data_140_20210602
+├── data_66_20210517
+├── data_yourname
+└── ssl
+
+```
+
+注意：所有文件夹中删除了`4.registration_batch`的子文件夹，该文件比较大，其目录结构如下：
+
+```
+/data/medical/cardiac/cta2mbf/data_66_20210517/4.registration_batch$ tree -L 2
+.
+├── 1023293
+│   ├── cta_mip_avg.nii.gz
+│   ├── cta_mip_bf.nii.gz
+│   ├── cta_mip_mip.nii.gz
+│   └── cta.nii.gz
+├── 1037361
+│   ├── cta_mip_avg.nii.gz
+│   ├── cta_mip_bf.nii.gz
+│   ├── cta_mip_mip.nii.gz
+│   └── cta.nii.gz
+
+```
+
+### 文件夹具体对应表
+
+1. <font color='red'>***20201216***</font>
+```
+# 对应文件： $MedDisk:\data\cardiac\cta2mbf\20201216
+# cta2mbf_1,cta2mbf_2,cta2mbf_3,cta2mbf_4
+/data/medical/cardiac/cta2mbf/20201216/0.ori$ ls
+CTAMBF-11例  CTAMBF-14例  CTAMBF-26例  心肌灌注
+```
+2. <font color='red'>***20210114***</font>
+```
+# 对应文件：$MedDisk:\data\cardiac\cta2mbf\20210114
+# cta2mbf_5
+```
+3. <font color='red'>***data_114_20210715/data_140_20210602***</font>
+```
+# 对应文件：$MedDisk:\data\cardiac\cta2mbf
+# cta2mbf_6
+```
+4. <font color='red'>***data_66_20210517/6.inference_384x384x160_train***</font>
+```
+zip -r cta2mbf_inference_66.zip 6.inference_384x384x160_train 5.mbf_myocardium annotation 7.analysis_result
+```
